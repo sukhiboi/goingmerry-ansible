@@ -1,4 +1,21 @@
 ---
+- name: Get media user UID
+  getent:
+    database: passwd
+    key: media
+  register: media_passwd
+
+- name: Get media-data group GID
+  getent:
+    database: group
+    key: media-data
+  register: media_data_group
+
+- name: Set media UID and GID facts
+  set_fact:
+    media_uid_resolved: "{{ media_passwd.ansible_facts.getent_passwd.media[1] }}"
+    media_gid_resolved: "{{ media_data_group.ansible_facts.getent_group['media-data'][1] }}"
+
 - name: Create monitoring compose directory
   file:
     path: "{{ monitoring_compose_dir }}"
