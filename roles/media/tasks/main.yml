@@ -20,6 +20,7 @@
   community.docker.docker_compose_v2:
     project_src: "{{ media_compose_dir }}"
     state: present
+  become: true
 
 - name: Restore sonarr config from backup
   block:
@@ -32,6 +33,7 @@
       community.docker.docker_compose_v2:
         project_src: "{{ media_compose_dir }}"
         state: stopped
+      become: true
       when: sonarr_backup.stat.exists
 
     - name: Copy sonarr backup to volume
@@ -79,3 +81,4 @@
   community.docker.docker_compose_v2:
     project_src: "{{ media_compose_dir }}"
     state: present
+  become: true
