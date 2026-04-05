@@ -45,6 +45,13 @@
         mode: preserve
       when: sonarr_backup.stat.exists
 
+    - name: Update qBittorrent hostname in Sonarr database
+      command: >
+        sqlite3 /var/lib/docker/volumes/media_sonarr-config/_data/sonarr.db
+        "UPDATE DownloadClientDefinitions SET Settings = REPLACE(Settings, '\"host\": \"goingmerry\"', '\"host\": \"qbittorrent\"')"
+      become: true
+      when: sonarr_backup.stat.exists
+
 - name: Restore radarr config from backup
   block:
     - name: Check radarr backup exists
@@ -59,6 +66,13 @@
         owner: "{{ media_uid }}"
         group: "{{ media_gid }}"
         mode: preserve
+      when: radarr_backup.stat.exists
+
+    - name: Update qBittorrent hostname in Radarr database
+      command: >
+        sqlite3 /var/lib/docker/volumes/media_radarr-config/_data/radarr.db
+        "UPDATE DownloadClientDefinitions SET Settings = REPLACE(Settings, '\"host\": \"goingmerry\"', '\"host\": \"qbittorrent\"')"
+      become: true
       when: radarr_backup.stat.exists
 
 - name: Restore prowlarr config from backup
