@@ -11,12 +11,12 @@
       changed_when: false
 
   roles:
-    - system
-    - users
-    - dotfiles
-    - docker
-    - storage
-    - nordvpn
-    - monitoring
-    - media
-    - caddy
+    - { role: system, tags: system }
+    - { role: users, tags: users }
+    - { role: dotfiles, tags: dotfiles }
+    - { role: docker, tags: docker }
+    - { role: storage, tags: storage }
+    - { role: nordvpn, tags: nordvpn }
+    - { role: monitoring, tags: monitoring }
+    - { role: media, tags: media }
+    - { role: caddy, tags: caddy }
