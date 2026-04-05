@@ -22,17 +22,7 @@
 
 - name: Install required packages
   apt:
-    name:
-      - vim
-      - zsh
-      - tree
-      - curl
-      - git
-      - htop
-      - fio
-      - hdparm
-      - dnsutils
-      - net-tools
+    name: "{{ packages }}"
     state: present
     update_cache: true
 

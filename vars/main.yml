@@ -2,6 +2,18 @@
 # System
 hostname: goingmerry
 timezone: Asia/Kolkata
+packages:
+  - vim
+  - zsh
+  - tree
+  - curl
+  - git
+  - htop
+  - fio
+  - hdparm
+  - dnsutils
+  - net-tools
+  - sshpass
 
 # Users
 main_user: luffy
