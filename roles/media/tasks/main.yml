@@ -40,14 +40,13 @@
   become: true
 
 - name: Wait for qBittorrent WebUI to be ready
-  uri:
-    url: "http://localhost:{{ qbittorrent_port }}"
-    method: GET
-    status_code: 200
+  command: docker exec qbittorrent curl -s -o /dev/null -w "%{http_code}" http://localhost:8080
   register: qbt_ready
   retries: 15
   delay: 5
-  until: qbt_ready.status == 200
+  until: qbt_ready.stdout == '200'
+  become: true
+  changed_when: false
 
 - name: Get qBittorrent temporary password from logs
   shell: docker logs qbittorrent 2>&1 | grep 'temporary password' | awk '{print $NF}'
@@ -56,25 +55,21 @@
   changed_when: false
 
 - name: Login to qBittorrent with temp password
-  uri:
-    url: "http://localhost:{{ qbittorrent_port }}/api/v2/auth/login"
-    method: POST
-    body: "username=admin&password={{ qbt_temp_password.stdout }}"
-    headers:
-      Content-Type: application/x-www-form-urlencoded
-    return_content: true
+  command: >
+    docker exec qbittorrent curl -s -c /tmp/qbt_cookies.txt
+    -d 'username=admin&password={{ qbt_temp_password.stdout }}'
+    http://localhost:8080/api/v2/auth/login
   register: qbt_login
+  become: true
   when: qbt_temp_password.stdout != ''
 
 - name: Set qBittorrent new password
-  uri:
-    url: "http://localhost:{{ qbittorrent_port }}/api/v2/app/setPreferences"
-    method: POST
-    body: "json={\"web_ui_username\":\"{{ qbittorrent_username }}\",\"web_ui_password\":\"{{ qbittorrent_password }}\"}"
-    headers:
-      Content-Type: application/x-www-form-urlencoded
-      Cookie: "{{ qbt_login.cookies_string }}"
-  when: qbt_login is succeeded and qbt_temp_password.stdout != ''
+  command: >
+    docker exec qbittorrent curl -s -b /tmp/qbt_cookies.txt
+    -d 'json={"web_ui_username":"{{ qbittorrent_username }}","web_ui_password":"{{ qbittorrent_password }}"}'
+    http://localhost:8080/api/v2/app/setPreferences
+  become: true
+  when: qbt_temp_password.stdout != ''
 
 - name: Restore sonarr config from backup
   block:
