@@ -10,3 +10,4 @@ influxdb_token: ""        # pre-define this — used for both InfluxDB setup and
 grafana_admin_password: ""
 external_drive_uuid: ""   # find it with: lsblk -f
 openwrt_root_password: "" # leave empty if OpenWrt has no root password set
+qbittorrent_password: ""

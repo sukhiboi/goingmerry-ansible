@@ -69,6 +69,13 @@
       become: true
       when: sonarr_backup.stat.exists
 
+    - name: Update qBittorrent password in Sonarr database
+      command: >
+        sqlite3 /var/lib/docker/volumes/media_sonarr-config/_data/sonarr.db
+        "UPDATE DownloadClients SET Settings = json_set(Settings, '$.password', '{{ qbittorrent_password }}') WHERE Implementation = 'QBittorrent'"
+      become: true
+      when: sonarr_backup.stat.exists
+
 - name: Restore radarr config from backup
   block:
     - name: Check radarr backup exists
@@ -89,6 +96,13 @@
       command: >
         sqlite3 /var/lib/docker/volumes/media_radarr-config/_data/radarr.db
         "UPDATE DownloadClients SET Settings = REPLACE(Settings, '\"host\": \"goingmerry\"', '\"host\": \"qbittorrent\"')"
+      become: true
+      when: radarr_backup.stat.exists
+
+    - name: Update qBittorrent password in Radarr database
+      command: >
+        sqlite3 /var/lib/docker/volumes/media_radarr-config/_data/radarr.db
+        "UPDATE DownloadClients SET Settings = json_set(Settings, '$.password', '{{ qbittorrent_password }}') WHERE Implementation = 'QBittorrent'"
       become: true
       when: radarr_backup.stat.exists
 

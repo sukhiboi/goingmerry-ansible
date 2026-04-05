@@ -53,6 +53,7 @@ backup_base: /home/luffy/backups
 
 # Domain
 domain: goingmerry
+qbittorrent_username: admin
 
 # Service ports (internal container ports)
 jellyfin_port: 8096
