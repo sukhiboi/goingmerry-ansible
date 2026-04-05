@@ -33,8 +33,11 @@ Then SSH in and run:
 sudo apt install -y ansible
 git clone <repo-url> ~/goingmerry-ansible
 cd ~/goingmerry-ansible
+ansible-galaxy install -r requirements.yml
 ansible-playbook goingmerry.yml -i inventory.yml --ask-vault-pass
 ```
+
+> `ansible-galaxy install` must run before the playbook — the prettify output plugin is loaded by ansible at startup before any tasks run.
 
 Ansible collections are installed automatically at the start of the playbook.
 
