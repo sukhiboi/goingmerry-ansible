@@ -16,24 +16,24 @@
     mode: "0750"
 
 - name: Copy types.db from OpenWrt
-  fetch:
-    src: /usr/share/collectd/types.db
-    dest: /tmp/types.db
-    flat: true
-  delegate_to: "{{ openwrt_ip }}"
-  vars:
-    ansible_user: root
-    ansible_ssh_pass: "{{ openwrt_root_password }}"
-    ansible_ssh_extra_args: '-o StrictHostKeyChecking=no'
+  shell: |
+    sshpass -p "{{ openwrt_root_password }}" \
+    ssh -o StrictHostKeyChecking=no \
+    -o ConnectTimeout=10 \
+    root@{{ openwrt_ip }} \
+    "cat /usr/share/collectd/types.db" > {{ monitoring_compose_dir }}/config/types.db
   register: types_db_fetch
+  ignore_errors: true
 
-- name: Copy types.db to monitoring config dir
-  copy:
-    src: /tmp/types.db
-    dest: "{{ monitoring_compose_dir }}/config/types.db"
-    owner: monitoring
-    group: monitoring
-    mode: "0644"
+- name: Check if types.db was copied successfully
+  stat:
+    path: "{{ monitoring_compose_dir }}/config/types.db"
+  register: types_db_stat
+
+- name: Fail if types.db missing and no fallback
+  fail:
+    msg: "Could not fetch types.db from OpenWrt and no fallback available"
+  when: not types_db_stat.stat.exists
 
 - name: Deploy telegraf.conf
   template:
