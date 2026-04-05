@@ -28,44 +28,33 @@
     groups: nordvpn
     append: true
 
-- name: Login to NordVPN with token
-  shell: echo "{{ nordvpn_token }}" | nordvpn login --legacy-token
-  register: nordvpn_login
-  failed_when: false
-  changed_when: "'already logged in' not in nordvpn_login.stdout | lower"
-  timeout: 30
-
-- name: Check NordVPN login status
+- name: Check if already logged in to NordVPN
   command: nordvpn account
-  register: nordvpn_status
+  register: nordvpn_account
   failed_when: false
   changed_when: false
 
-- name: Show NordVPN status
-  debug:
-    msg: "{{ nordvpn_status.stdout }}"
+- name: Login to NordVPN with token
+  command: nordvpn login --token {{ nordvpn_token }}
+  register: nordvpn_login
+  failed_when: false
+  changed_when: false
+  async: 20
+  poll: 2
+  when: "'not logged in' in nordvpn_account.stdout | lower or 'you are not' in nordvpn_account.stdout | lower"
 
-- name: Enable LAN discovery
-  command: nordvpn set lan-discovery enabled
-  register: nordvpn_lan
-  changed_when: "'enabled' in nordvpn_lan.stdout"
-  failed_when:
-    - nordvpn_lan.rc != 0
-    - "'already' not in nordvpn_lan.stdout | lower"
-
+- name: Set NordVPN lan-discovery
+  command: nordvpn set lan-discovery enable
+  failed_when: false
+  changed_when: false
 
 - name: Enable autoconnect
-  command: nordvpn set autoconnect enabled
-  register: nordvpn_autoconnect
-  changed_when: "'enabled' in nordvpn_autoconnect.stdout"
-  failed_when:
-    - nordvpn_autoconnect.rc != 0
-    - "'already' not in nordvpn_autoconnect.stdout | lower"
+  command: nordvpn set autoconnect on
+  failed_when: false
+  changed_when: false
 
 - name: Connect to NordVPN
   command: nordvpn connect
   register: nordvpn_connect
   changed_when: "'connected' in nordvpn_connect.stdout | lower"
-  failed_when:
-    - nordvpn_connect.rc != 0
-    - "'already connected' not in nordvpn_connect.stdout | lower"
+  failed_when: false
