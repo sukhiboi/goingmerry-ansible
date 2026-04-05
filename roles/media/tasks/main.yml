@@ -39,6 +39,43 @@
     state: present
   become: true
 
+- name: Wait for qBittorrent WebUI to be ready
+  uri:
+    url: "http://localhost:{{ qbittorrent_port }}"
+    method: GET
+    status_code: 200
+  register: qbt_ready
+  retries: 15
+  delay: 5
+  until: qbt_ready.status == 200
+
+- name: Get qBittorrent temporary password from logs
+  shell: docker logs qbittorrent 2>&1 | grep 'temporary password' | awk '{print $NF}'
+  register: qbt_temp_password
+  become: true
+  changed_when: false
+
+- name: Login to qBittorrent with temp password
+  uri:
+    url: "http://localhost:{{ qbittorrent_port }}/api/v2/auth/login"
+    method: POST
+    body: "username=admin&password={{ qbt_temp_password.stdout }}"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    return_content: true
+  register: qbt_login
+  when: qbt_temp_password.stdout != ''
+
+- name: Set qBittorrent new password
+  uri:
+    url: "http://localhost:{{ qbittorrent_port }}/api/v2/app/setPreferences"
+    method: POST
+    body: "json={\"web_ui_username\":\"{{ qbittorrent_username }}\",\"web_ui_password\":\"{{ qbittorrent_password }}\"}"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+      Cookie: "{{ qbt_login.cookies_string }}"
+  when: qbt_login is succeeded and qbt_temp_password.stdout != ''
+
 - name: Restore sonarr config from backup
   block:
     - name: Check sonarr backup exists
