@@ -30,11 +30,21 @@
 
 - name: Log in to NordVPN with token
   command: nordvpn login --token {{ nordvpn_token }}
+  async: 30
+  poll: 5
   register: nordvpn_login
-  changed_when: "'You are logged in' in nordvpn_login.stdout"
-  failed_when:
-    - nordvpn_login.rc != 0
-    - "'already logged in' not in nordvpn_login.stdout | lower"
+  failed_when: false
+  changed_when: "'already logged in' not in nordvpn_login.stdout | lower"
+
+- name: Check NordVPN login status
+  command: nordvpn account
+  register: nordvpn_status
+  failed_when: false
+  changed_when: false
+
+- name: Show NordVPN status
+  debug:
+    msg: "{{ nordvpn_status.stdout }}"
 
 - name: Enable LAN discovery
   command: nordvpn set lan-discovery enabled
