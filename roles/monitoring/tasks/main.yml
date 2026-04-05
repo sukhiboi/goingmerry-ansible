@@ -25,26 +25,15 @@
     ansible_user: root
     ansible_ssh_pass: "{{ openwrt_root_password }}"
     ansible_ssh_extra_args: '-o StrictHostKeyChecking=no'
-  ignore_errors: true
   register: types_db_fetch
 
-- name: Copy types.db to monitoring config dir (from OpenWrt)
+- name: Copy types.db to monitoring config dir
   copy:
     src: /tmp/types.db
     dest: "{{ monitoring_compose_dir }}/config/types.db"
     owner: monitoring
     group: monitoring
     mode: "0644"
-  when: types_db_fetch is succeeded
-
-- name: Copy types.db to monitoring config dir (local fallback)
-  copy:
-    src: "{{ playbook_dir }}/files/monitoring/types.db"
-    dest: "{{ monitoring_compose_dir }}/config/types.db"
-    owner: monitoring
-    group: monitoring
-    mode: "0644"
-  when: types_db_fetch is failed
 
 - name: Deploy telegraf.conf
   template:

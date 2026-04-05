@@ -1,4 +1,0 @@
-# Fallback collectd types.db
-# This file is used if the live fetch from OpenWrt (192.168.1.1) fails.
-# Replace with the actual types.db from your OpenWrt router:
-#   scp root@192.168.1.1:/usr/share/collectd/types.db files/monitoring/types.db
