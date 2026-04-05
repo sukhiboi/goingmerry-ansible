@@ -135,8 +135,10 @@
         docker cp {{ backup_base }}/influxdb-backup/influxdb-backup influxdb:/tmp/
         docker exec influxdb influx restore /tmp/influxdb-backup \
           --host http://localhost:{{ influxdb_port }} \
-          --token {{ influxdb_token }}
+          --token {{ influxdb_token }} \
+          --full
       when: influxdb_backup.stat.exists
       register: influxdb_restore
+      failed_when: influxdb_restore.rc != 0 and 'already exists' not in influxdb_restore.stderr
       changed_when: influxdb_restore.rc == 0
       become: true
