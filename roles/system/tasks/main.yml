@@ -1,0 +1,74 @@
+---
+- name: Update apt cache
+  apt:
+    update_cache: true
+    cache_valid_time: 0
+
+- name: Upgrade all packages
+  apt:
+    upgrade: safe
+
+- name: Dist-upgrade
+  apt:
+    upgrade: dist
+
+- name: Set hostname
+  hostname:
+    name: "{{ hostname }}"
+
+- name: Set timezone
+  timezone:
+    name: "{{ timezone }}"
+
+- name: Install required packages
+  apt:
+    name:
+      - vim
+      - zsh
+      - tree
+      - curl
+      - git
+      - htop
+      - fio
+      - hdparm
+      - dnsutils
+      - net-tools
+    state: present
+    update_cache: true
+
+- name: Disable cloud-init
+  file:
+    path: /etc/cloud/cloud-init.disabled
+    state: touch
+    mode: "0644"
+    modification_time: preserve
+    access_time: preserve
+
+- name: Read current cmdline.txt
+  slurp:
+    src: /boot/firmware/cmdline.txt
+  register: cmdline_content
+
+- name: Enable cgroup memory in cmdline.txt
+  replace:
+    path: /boot/firmware/cmdline.txt
+    regexp: '(^(?!.*cgroup_enable=memory).*)'
+    replace: '\1 cgroup_enable=memory cgroup_memory=1'
+  when: "'cgroup_enable=memory' not in (cmdline_content.content | b64decode)"
+  notify: reboot required
+
+- name: Disable root login via SSH
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?PermitRootLogin'
+    line: 'PermitRootLogin no'
+    state: present
+  notify: restart sshd
+
+- name: Enable password authentication via SSH
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?PasswordAuthentication'
+    line: 'PasswordAuthentication yes'
+    state: present
+  notify: restart sshd

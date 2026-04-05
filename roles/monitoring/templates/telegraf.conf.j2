@@ -1,0 +1,38 @@
+# Telegraf configuration — receives collectd data from OpenWrt
+# Outputs to InfluxDB network bucket
+
+[global_tags]
+  source = "openwrt"
+
+[agent]
+  interval = "10s"
+  round_interval = true
+  metric_batch_size = 1000
+  metric_buffer_limit = 10000
+  collection_jitter = "0s"
+  flush_interval = "10s"
+  flush_jitter = "0s"
+  precision = ""
+  hostname = ""
+  omit_hostname = false
+
+###############################################################################
+#                                  INPUTS                                     #
+###############################################################################
+
+[[inputs.socket_listener]]
+  service_address = "udp://:{{ openwrt_collectd_port }}"
+  data_format = "collectd"
+  collectd_auth_file = ""
+  collectd_security_level = "none"
+  collectd_typesdb = ["/usr/share/collectd/types.db"]
+
+###############################################################################
+#                                  OUTPUTS                                    #
+###############################################################################
+
+[[outputs.influxdb_v2]]
+  urls = ["{{ influxdb_url }}"]
+  token = "{{ influxdb_token }}"
+  organization = "{{ influxdb_org }}"
+  bucket = "{{ influxdb_bucket_network }}"

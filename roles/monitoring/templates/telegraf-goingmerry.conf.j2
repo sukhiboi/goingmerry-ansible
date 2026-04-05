@@ -1,0 +1,68 @@
+# Telegraf configuration — monitors Pi 5 host metrics and Docker containers
+# Outputs to InfluxDB goingmerry bucket
+
+[global_tags]
+  host = "goingmerry"
+
+[agent]
+  interval = "10s"
+  round_interval = true
+  metric_batch_size = 1000
+  metric_buffer_limit = 10000
+  collection_jitter = "0s"
+  flush_interval = "10s"
+  flush_jitter = "0s"
+  precision = ""
+  hostname = "goingmerry"
+  omit_hostname = false
+
+###############################################################################
+#                                  INPUTS                                     #
+###############################################################################
+
+[[inputs.cpu]]
+  percpu = true
+  totalcpu = true
+  collect_cpu_time = false
+  report_active = false
+
+[[inputs.mem]]
+
+[[inputs.disk]]
+  ignore_fs = ["tmpfs", "devtmpfs", "devfs", "iso9660", "overlay", "aufs", "squashfs"]
+  mount_points = ["/", "{{ external_drive_mount }}"]
+
+[[inputs.diskio]]
+
+[[inputs.system]]
+
+[[inputs.net]]
+
+[[inputs.processes]]
+
+[[inputs.swap]]
+
+[[inputs.temp]]
+
+[[inputs.docker]]
+  endpoint = "unix:///var/run/docker.sock"
+  gather_services = false
+  container_names = []
+  source_tag = false
+  container_name_include = []
+  container_name_exclude = []
+  timeout = "5s"
+  perdevice = true
+  total = false
+  docker_label_include = []
+  docker_label_exclude = []
+
+###############################################################################
+#                                  OUTPUTS                                    #
+###############################################################################
+
+[[outputs.influxdb_v2]]
+  urls = ["{{ influxdb_url }}"]
+  token = "{{ influxdb_token }}"
+  organization = "{{ influxdb_org }}"
+  bucket = "{{ influxdb_bucket_goingmerry }}"

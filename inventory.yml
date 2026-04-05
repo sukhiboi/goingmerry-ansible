@@ -1,0 +1,8 @@
+all:
+  hosts:
+    goingmerry:
+      ansible_host: localhost
+      ansible_connection: local
+      ansible_user: luffy
+      ansible_become: true
+      ansible_become_method: sudo

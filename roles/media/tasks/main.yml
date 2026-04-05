@@ -1,0 +1,81 @@
+---
+- name: Create media compose directory
+  file:
+    path: "{{ media_compose_dir }}"
+    state: directory
+    owner: media
+    group: media
+    mode: "0750"
+
+- name: Deploy media docker-compose.yml
+  template:
+    src: docker-compose.yml.j2
+    dest: "{{ media_compose_dir }}/docker-compose.yml"
+    owner: media
+    group: media
+    mode: "0640"
+  notify: restart media stack
+
+- name: Start media stack
+  community.docker.docker_compose_v2:
+    project_src: "{{ media_compose_dir }}"
+    state: present
+
+- name: Restore sonarr config from backup
+  block:
+    - name: Check sonarr backup exists
+      stat:
+        path: "{{ backup_base }}/sonarr-config"
+      register: sonarr_backup
+
+    - name: Stop media stack for sonarr restore
+      community.docker.docker_compose_v2:
+        project_src: "{{ media_compose_dir }}"
+        state: stopped
+      when: sonarr_backup.stat.exists
+
+    - name: Copy sonarr backup to volume
+      copy:
+        src: "{{ backup_base }}/sonarr-config/"
+        dest: /var/lib/docker/volumes/media_sonarr-config/_data/
+        owner: "{{ media_uid }}"
+        group: "{{ media_gid }}"
+        mode: preserve
+      when: sonarr_backup.stat.exists
+
+- name: Restore radarr config from backup
+  block:
+    - name: Check radarr backup exists
+      stat:
+        path: "{{ backup_base }}/radarr-config"
+      register: radarr_backup
+
+    - name: Copy radarr backup to volume
+      copy:
+        src: "{{ backup_base }}/radarr-config/"
+        dest: /var/lib/docker/volumes/media_radarr-config/_data/
+        owner: "{{ media_uid }}"
+        group: "{{ media_gid }}"
+        mode: preserve
+      when: radarr_backup.stat.exists
+
+- name: Restore prowlarr config from backup
+  block:
+    - name: Check prowlarr backup exists
+      stat:
+        path: "{{ backup_base }}/prowlarr-config"
+      register: prowlarr_backup
+
+    - name: Copy prowlarr backup to volume
+      copy:
+        src: "{{ backup_base }}/prowlarr-config/"
+        dest: /var/lib/docker/volumes/media_prowlarr-config/_data/
+        owner: "{{ media_uid }}"
+        group: "{{ media_gid }}"
+        mode: preserve
+      when: prowlarr_backup.stat.exists
+
+- name: Start media stack after restores
+  community.docker.docker_compose_v2:
+    project_src: "{{ media_compose_dir }}"
+    state: present

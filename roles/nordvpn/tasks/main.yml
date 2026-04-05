@@ -1,0 +1,69 @@
+---
+- name: Check if NordVPN is already installed
+  command: which nordvpn
+  register: nordvpn_installed
+  changed_when: false
+  failed_when: false
+
+- name: Download NordVPN installer
+  get_url:
+    url: https://downloads.nordcdn.com/apps/linux/install.sh
+    dest: /tmp/nordvpn_install.sh
+    mode: "0755"
+  when: nordvpn_installed.rc != 0
+
+- name: Install NordVPN
+  command: sh /tmp/nordvpn_install.sh --no-tty
+  when: nordvpn_installed.rc != 0
+
+- name: Enable and start NordVPN daemon
+  service:
+    name: nordvpnd
+    state: started
+    enabled: true
+
+- name: Add luffy to nordvpn group
+  user:
+    name: luffy
+    groups: nordvpn
+    append: true
+
+- name: Log in to NordVPN with token
+  command: nordvpn login --token {{ nordvpn_token }}
+  register: nordvpn_login
+  changed_when: "'You are logged in' in nordvpn_login.stdout"
+  failed_when:
+    - nordvpn_login.rc != 0
+    - "'already logged in' not in nordvpn_login.stdout | lower"
+
+- name: Enable LAN discovery
+  command: nordvpn set lan-discovery enabled
+  register: nordvpn_lan
+  changed_when: "'enabled' in nordvpn_lan.stdout"
+  failed_when:
+    - nordvpn_lan.rc != 0
+    - "'already' not in nordvpn_lan.stdout | lower"
+
+- name: Allow LAN subnet
+  command: nordvpn whitelist add subnet {{ nordvpn_lan_subnet }}
+  register: nordvpn_whitelist
+  changed_when: "'added' in nordvpn_whitelist.stdout | lower"
+  failed_when:
+    - nordvpn_whitelist.rc != 0
+    - "'already' not in nordvpn_whitelist.stdout | lower"
+
+- name: Enable autoconnect
+  command: nordvpn set autoconnect enabled
+  register: nordvpn_autoconnect
+  changed_when: "'enabled' in nordvpn_autoconnect.stdout"
+  failed_when:
+    - nordvpn_autoconnect.rc != 0
+    - "'already' not in nordvpn_autoconnect.stdout | lower"
+
+- name: Connect to NordVPN
+  command: nordvpn connect
+  register: nordvpn_connect
+  changed_when: "'connected' in nordvpn_connect.stdout | lower"
+  failed_when:
+    - nordvpn_connect.rc != 0
+    - "'already connected' not in nordvpn_connect.stdout | lower"

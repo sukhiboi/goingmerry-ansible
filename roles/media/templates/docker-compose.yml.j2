@@ -1,0 +1,87 @@
+---
+services:
+  jellyfin:
+    image: lscr.io/linuxserver/jellyfin:latest
+    container_name: jellyfin
+    restart: unless-stopped
+    networks:
+      - media-net
+    volumes:
+      - jellyfin-config:/config
+      - {{ external_drive_mount }}/Shows:/data/tvshows
+      - {{ external_drive_mount }}/Movies:/data/movies
+    environment:
+      - PUID={{ media_uid }}
+      - PGID={{ media_gid }}
+      - TZ={{ timezone }}
+
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    restart: unless-stopped
+    networks:
+      - media-net
+    volumes:
+      - qbittorrent-config:/config
+      - {{ external_drive_mount }}/qbittorrent/completed:/downloads/completed
+      - {{ external_drive_mount }}/qbittorrent/in-progress:/downloads/in-progress
+      - {{ external_drive_mount }}/torrents:/torrents
+    environment:
+      - PUID={{ media_uid }}
+      - PGID={{ media_gid }}
+      - TZ={{ timezone }}
+      - WEBUI_PORT={{ qbittorrent_port }}
+
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    restart: unless-stopped
+    networks:
+      - media-net
+    volumes:
+      - sonarr-config:/config
+      - {{ external_drive_mount }}/Shows:/tv
+      - {{ external_drive_mount }}/qbittorrent/completed:/downloads/completed
+    environment:
+      - PUID={{ media_uid }}
+      - PGID={{ media_gid }}
+      - TZ={{ timezone }}
+
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    restart: unless-stopped
+    networks:
+      - media-net
+    volumes:
+      - radarr-config:/config
+      - {{ external_drive_mount }}/Movies:/movies
+      - {{ external_drive_mount }}/qbittorrent/completed:/downloads/completed
+    environment:
+      - PUID={{ media_uid }}
+      - PGID={{ media_gid }}
+      - TZ={{ timezone }}
+
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    restart: unless-stopped
+    networks:
+      - media-net
+    volumes:
+      - prowlarr-config:/config
+    environment:
+      - PUID={{ media_uid }}
+      - PGID={{ media_gid }}
+      - TZ={{ timezone }}
+
+volumes:
+  jellyfin-config:
+  qbittorrent-config:
+  sonarr-config:
+  radarr-config:
+  prowlarr-config:
+
+networks:
+  media-net:
+    external: true

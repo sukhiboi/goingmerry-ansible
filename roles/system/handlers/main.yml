@@ -1,0 +1,9 @@
+---
+- name: restart sshd
+  service:
+    name: sshd
+    state: restarted
+
+- name: reboot required
+  debug:
+    msg: "Reboot required for cgroup changes to take effect. Please reboot manually."

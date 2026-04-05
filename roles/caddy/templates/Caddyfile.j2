@@ -1,0 +1,32 @@
+{
+    admin off
+    auto_https off
+}
+
+tv.{{ domain }} {
+    reverse_proxy jellyfin:{{ jellyfin_port }}
+}
+
+cargo.{{ domain }} {
+    reverse_proxy qbittorrent:{{ qbittorrent_port }}
+}
+
+sonarr.{{ domain }} {
+    reverse_proxy sonarr:{{ sonarr_port }}
+}
+
+radarr.{{ domain }} {
+    reverse_proxy radarr:{{ radarr_port }}
+}
+
+prowlarr.{{ domain }} {
+    reverse_proxy prowlarr:{{ prowlarr_port }}
+}
+
+grafana.{{ domain }} {
+    reverse_proxy grafana:{{ grafana_port }}
+}
+
+influxdb.{{ domain }} {
+    reverse_proxy influxdb:{{ influxdb_port }}
+}

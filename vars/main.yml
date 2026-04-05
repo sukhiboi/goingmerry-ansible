@@ -1,0 +1,52 @@
+---
+# System
+hostname: goingmerry
+timezone: Asia/Kolkata
+
+# Users
+luffy_uid: 1000
+media_uid: 1001
+monitoring_uid: 1002
+media_gid: 1001
+monitoring_gid: 1002
+media_data_gid: 1003
+
+# Storage
+external_drive_mount: /mnt/voidcentury
+
+# InfluxDB
+influxdb_org: goingmerry
+influxdb_bucket_network: network
+influxdb_bucket_goingmerry: goingmerry
+influxdb_admin_user: admin
+influxdb_url: http://influxdb:8086
+
+# Grafana
+grafana_admin_user: admin
+
+# NordVPN
+nordvpn_lan_subnet: 192.168.1.0/24
+
+# OpenWrt
+openwrt_ip: 192.168.1.1
+openwrt_collectd_port: 25826
+
+# Docker compose paths
+media_compose_dir: /opt/media
+monitoring_compose_dir: /opt/monitoring
+caddy_compose_dir: /opt/caddy
+
+# Backup paths (on the Pi, under luffy's home)
+backup_base: /home/luffy/backups
+
+# Domain
+domain: goingmerry
+
+# Service ports (internal container ports)
+jellyfin_port: 8096
+qbittorrent_port: 8080
+sonarr_port: 8989
+radarr_port: 7878
+prowlarr_port: 9696
+grafana_port: 3000
+influxdb_port: 8086

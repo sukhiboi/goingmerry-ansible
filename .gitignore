@@ -1,0 +1,4 @@
+.idea
+.claude
+# Never commit unencrypted vault — encrypt first with: ansible-vault encrypt vars/vault.yml
+# vars/vault.yml  # Uncomment this line once vault is encrypted to be safe

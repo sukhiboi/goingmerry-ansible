@@ -1,0 +1,49 @@
+---
+- name: Check if Oh My Zsh is already installed
+  stat:
+    path: /home/luffy/.oh-my-zsh
+  register: ohmyzsh_stat
+
+- name: Download Oh My Zsh installer
+  get_url:
+    url: https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh
+    dest: /tmp/install_ohmyzsh.sh
+    mode: "0755"
+  when: not ohmyzsh_stat.stat.exists
+
+- name: Install Oh My Zsh for luffy
+  become: true
+  become_user: luffy
+  command: sh /tmp/install_ohmyzsh.sh --unattended
+  environment:
+    HOME: /home/luffy
+    USER: luffy
+  when: not ohmyzsh_stat.stat.exists
+
+- name: Set robbyrussell theme in .zshrc
+  lineinfile:
+    path: /home/luffy/.zshrc
+    regexp: '^ZSH_THEME='
+    line: 'ZSH_THEME="robbyrussell"'
+    state: present
+    owner: luffy
+    group: luffy
+
+- name: Deploy .vimrc for luffy
+  copy:
+    dest: /home/luffy/.vimrc
+    content: |
+      syntax on
+      set number
+      set tabstop=2
+      set shiftwidth=2
+      set expandtab
+      set autoindent
+      set hlsearch
+      set incsearch
+      set ruler
+      set showcmd
+      set wildmenu
+    owner: luffy
+    group: luffy
+    mode: "0644"

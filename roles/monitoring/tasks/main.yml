@@ -1,0 +1,140 @@
+---
+- name: Create monitoring compose directory
+  file:
+    path: "{{ monitoring_compose_dir }}"
+    state: directory
+    owner: monitoring
+    group: monitoring
+    mode: "0750"
+
+- name: Create monitoring config directory
+  file:
+    path: "{{ monitoring_compose_dir }}/config"
+    state: directory
+    owner: monitoring
+    group: monitoring
+    mode: "0750"
+
+- name: Copy types.db from OpenWrt
+  fetch:
+    src: /usr/share/collectd/types.db
+    dest: /tmp/types.db
+    flat: true
+  delegate_to: "{{ openwrt_ip }}"
+  vars:
+    ansible_user: root
+    ansible_ssh_pass: ""  # OpenWrt typically has no root password
+  ignore_errors: true
+  register: types_db_fetch
+
+- name: Copy types.db to monitoring config dir
+  copy:
+    src: /tmp/types.db
+    dest: "{{ monitoring_compose_dir }}/config/types.db"
+    owner: monitoring
+    group: monitoring
+    mode: "0644"
+  when: types_db_fetch is succeeded
+
+- name: Deploy telegraf.conf
+  template:
+    src: telegraf.conf.j2
+    dest: "{{ monitoring_compose_dir }}/config/telegraf.conf"
+    owner: monitoring
+    group: monitoring
+    mode: "0640"
+  notify: restart monitoring stack
+
+- name: Deploy telegraf-goingmerry.conf
+  template:
+    src: telegraf-goingmerry.conf.j2
+    dest: "{{ monitoring_compose_dir }}/config/telegraf-goingmerry.conf"
+    owner: monitoring
+    group: monitoring
+    mode: "0640"
+  notify: restart monitoring stack
+
+- name: Deploy monitoring docker-compose.yml
+  template:
+    src: docker-compose.yml.j2
+    dest: "{{ monitoring_compose_dir }}/docker-compose.yml"
+    owner: monitoring
+    group: monitoring
+    mode: "0640"
+  notify: restart monitoring stack
+
+- name: Start monitoring stack
+  community.docker.docker_compose_v2:
+    project_src: "{{ monitoring_compose_dir }}"
+    state: present
+  register: monitoring_stack
+
+- name: Wait for InfluxDB to be ready
+  uri:
+    url: "http://localhost:{{ influxdb_port }}/health"
+    method: GET
+    status_code: 200
+  register: influxdb_health
+  retries: 15
+  delay: 5
+  until: influxdb_health.status == 200
+
+# InfluxDB init (org, admin user, password, network bucket, token) is fully handled
+# by DOCKER_INFLUXDB_INIT_* env vars in docker-compose.yml on first start.
+# We only need to create the second bucket (goingmerry) which the env vars don't cover.
+- name: Create goingmerry bucket in InfluxDB
+  command: >
+    docker exec influxdb influx bucket create
+    --name {{ influxdb_bucket_goingmerry }}
+    --org {{ influxdb_org }}
+    --token {{ influxdb_token }}
+  register: create_bucket
+  changed_when: create_bucket.rc == 0
+  failed_when:
+    - create_bucket.rc != 0
+    - "'already exists' not in create_bucket.stderr"
+
+- name: Restore grafana data from backup
+  block:
+    - name: Check if grafana backup exists
+      stat:
+        path: "{{ backup_base }}/grafana-data"
+      register: grafana_backup
+
+    - name: Stop monitoring stack for grafana restore
+      community.docker.docker_compose_v2:
+        project_src: "{{ monitoring_compose_dir }}"
+        state: stopped
+      when: grafana_backup.stat.exists
+
+    - name: Copy grafana backup to volume
+      copy:
+        src: "{{ backup_base }}/grafana-data/"
+        dest: /var/lib/docker/volumes/monitoring_grafana-data/_data/
+        owner: "472"
+        group: "472"
+        mode: preserve
+      when: grafana_backup.stat.exists
+
+    - name: Start monitoring stack after restore
+      community.docker.docker_compose_v2:
+        project_src: "{{ monitoring_compose_dir }}"
+        state: present
+      when: grafana_backup.stat.exists
+
+- name: Restore influxdb backup
+  block:
+    - name: Check if influxdb backup exists
+      stat:
+        path: "{{ backup_base }}/influxdb-backup"
+      register: influxdb_backup
+
+    - name: Copy influxdb backup into container and restore
+      shell: |
+        docker cp {{ backup_base }}/influxdb-backup influxdb:/tmp/influxdb-backup
+        docker exec influxdb influx restore /tmp/influxdb-backup \
+          --host http://localhost:{{ influxdb_port }} \
+          --token {{ influxdb_token }}
+      when: influxdb_backup.stat.exists
+      register: influxdb_restore
+      changed_when: influxdb_restore.rc == 0

@@ -1,0 +1,74 @@
+---
+- name: Create media-data group
+  group:
+    name: media-data
+    gid: "{{ media_data_gid }}"
+    state: present
+
+- name: Create media group
+  group:
+    name: media
+    gid: "{{ media_gid }}"
+    state: present
+
+- name: Create monitoring group
+  group:
+    name: monitoring
+    gid: "{{ monitoring_gid }}"
+    state: present
+
+- name: Create docker group
+  group:
+    name: docker
+    state: present
+
+- name: Create luffy user
+  user:
+    name: luffy
+    uid: "{{ luffy_uid }}"
+    shell: /bin/zsh
+    groups:
+      - sudo
+      - docker
+      - media-data
+      - media
+      - monitoring
+    append: true
+    state: present
+    create_home: true
+
+- name: Create media user
+  user:
+    name: media
+    uid: "{{ media_uid }}"
+    shell: /bin/false
+    groups:
+      - media
+      - media-data
+      - docker
+    append: true
+    state: present
+    create_home: false
+    system: true
+
+- name: Create monitoring user
+  user:
+    name: monitoring
+    uid: "{{ monitoring_uid }}"
+    shell: /bin/false
+    groups:
+      - monitoring
+      - docker
+    append: true
+    state: present
+    create_home: false
+    system: true
+
+- name: Allow luffy to sudo without password
+  copy:
+    dest: /etc/sudoers.d/luffy
+    content: "luffy ALL=(ALL) NOPASSWD: ALL\n"
+    owner: root
+    group: root
+    mode: "0440"
+    validate: /usr/sbin/visudo -cf %s

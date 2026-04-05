@@ -1,0 +1,42 @@
+---
+- name: Install exfat support
+  apt:
+    name:
+      - exfatprogs
+      - fuse
+    state: present
+
+- name: Create mount point for external drive
+  file:
+    path: "{{ external_drive_mount }}"
+    state: directory
+    mode: "0775"
+
+- name: Add external drive to fstab
+  mount:
+    path: "{{ external_drive_mount }}"
+    src: "UUID={{ external_drive_uuid }}"
+    fstype: exfat
+    opts: "uid={{ media_uid }},gid={{ media_data_gid }},umask=002,defaults,nofail"
+    state: mounted
+
+- name: Create media directories on external drive
+  file:
+    path: "{{ external_drive_mount }}/{{ item }}"
+    state: directory
+    owner: media
+    group: media-data
+    mode: "0775"
+  loop:
+    - Shows
+    - Movies
+    - qbittorrent/completed
+    - qbittorrent/in-progress
+    - torrents
+
+- name: Ensure correct ownership on mount root
+  file:
+    path: "{{ external_drive_mount }}"
+    owner: media
+    group: media-data
+    mode: "0775"

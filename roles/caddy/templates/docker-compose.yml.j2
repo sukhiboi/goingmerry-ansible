@@ -1,0 +1,24 @@
+---
+services:
+  caddy:
+    image: caddy:latest
+    container_name: caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    networks:
+      - media-net
+      - monitoring-net
+    volumes:
+      - {{ caddy_compose_dir }}/config/Caddyfile:/etc/caddy/Caddyfile:ro
+      - {{ caddy_compose_dir }}/data:/data
+      - caddy-config:/config
+
+volumes:
+  caddy-config:
+
+networks:
+  media-net:
+    external: true
+  monitoring-net:
+    external: true
