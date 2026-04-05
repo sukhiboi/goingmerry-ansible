@@ -52,6 +52,21 @@
     msg: "Could not fetch types.db from OpenWrt and no fallback available"
   when: not types_db_stat.stat.exists
 
+- name: Get Docker socket GID
+  shell: stat -c '%g' /var/run/docker.sock
+  register: docker_gid
+  changed_when: false
+  become: true
+
+- name: Create monitoring .env file
+  copy:
+    dest: "{{ monitoring_compose_dir }}/.env"
+    content: "DOCKER_GID={{ docker_gid.stdout }}\n"
+    owner: monitoring
+    group: monitoring
+    mode: "0640"
+  become: true
+
 - name: Deploy telegraf.conf
   template:
     src: telegraf.conf.j2
