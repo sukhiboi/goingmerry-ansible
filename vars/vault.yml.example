@@ -1,0 +1,12 @@
+# Copy this to vars/vault.yml, fill in values, then encrypt:
+#   ansible-vault encrypt vars/vault.yml
+#
+# To edit after encryption:
+#   ansible-vault edit vars/vault.yml
+
+nordvpn_token: ""
+influxdb_admin_password: ""
+influxdb_token: ""        # pre-define this — used for both InfluxDB setup and Telegraf
+grafana_admin_password: ""
+external_drive_uuid: ""   # find it with: lsblk -f
+openwrt_root_password: "" # leave empty if OpenWrt has no root password set
