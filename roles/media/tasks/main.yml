@@ -158,62 +158,107 @@
     prowlarr_backup.stat.exists or
     jellyfin_backup.stat.exists
 
-# 9. Update qBittorrent hostname in Sonarr
-- name: Update qBittorrent hostname in Sonarr database
+# 9. Fix qBittorrent hostname in Sonarr
+- name: Fix qBittorrent hostname in Sonarr
   command: >
     sqlite3 /var/lib/docker/volumes/media_sonarr-config/_data/sonarr.db
     "UPDATE DownloadClients SET Settings = REPLACE(Settings, '\"host\": \"goingmerry\"', '\"host\": \"qbittorrent\"')"
   become: true
   when: sonarr_backup.stat.exists
 
-# 10. Update qBittorrent hostname in Radarr
-- name: Update qBittorrent hostname in Radarr database
+# 10. Fix qBittorrent hostname in Radarr
+- name: Fix qBittorrent hostname in Radarr
   command: >
     sqlite3 /var/lib/docker/volumes/media_radarr-config/_data/radarr.db
     "UPDATE DownloadClients SET Settings = REPLACE(Settings, '\"host\": \"goingmerry\"', '\"host\": \"qbittorrent\"')"
   become: true
   when: radarr_backup.stat.exists
 
-# 11. Update qBittorrent password in Sonarr
-- name: Update qBittorrent password in Sonarr database
+# 11. Fix qBittorrent password in Sonarr
+- name: Fix qBittorrent password in Sonarr
   command: >
     sqlite3 /var/lib/docker/volumes/media_sonarr-config/_data/sonarr.db
     "UPDATE DownloadClients SET Settings = json_set(Settings, '$.password', '{{ qbittorrent_password }}') WHERE Implementation = 'QBittorrent'"
   become: true
   when: sonarr_backup.stat.exists
 
-# 12. Update qBittorrent password in Radarr
-- name: Update qBittorrent password in Radarr database
+# 12. Fix qBittorrent password in Radarr
+- name: Fix qBittorrent password in Radarr
   command: >
     sqlite3 /var/lib/docker/volumes/media_radarr-config/_data/radarr.db
     "UPDATE DownloadClients SET Settings = json_set(Settings, '$.password', '{{ qbittorrent_password }}') WHERE Implementation = 'QBittorrent'"
   become: true
   when: radarr_backup.stat.exists
 
-# 13. Update Sonarr root folder path
-- name: Update Sonarr root folder path
+# 13. Fix Prowlarr baseUrl for Sonarr
+- name: Fix Prowlarr Sonarr baseUrl
+  command: >
+    sqlite3 /var/lib/docker/volumes/media_prowlarr-config/_data/prowlarr.db
+    "UPDATE Applications SET Settings = REPLACE(Settings, '\"baseUrl\": \"http://localhost:8989\"', '\"baseUrl\": \"http://sonarr:8989\"') WHERE Name = 'Sonarr'"
+  become: true
+  when: prowlarr_backup.stat.exists
+
+# 14. Fix Prowlarr baseUrl for Radarr
+- name: Fix Prowlarr Radarr baseUrl
+  command: >
+    sqlite3 /var/lib/docker/volumes/media_prowlarr-config/_data/prowlarr.db
+    "UPDATE Applications SET Settings = REPLACE(Settings, '\"baseUrl\": \"http://localhost:7878\"', '\"baseUrl\": \"http://radarr:7878\"') WHERE Name = 'Radarr'"
+  become: true
+  when: prowlarr_backup.stat.exists
+
+# 15. Fix Prowlarr self URL
+- name: Fix Prowlarr self URL
+  command: >
+    sqlite3 /var/lib/docker/volumes/media_prowlarr-config/_data/prowlarr.db
+    "UPDATE Applications SET Settings = REPLACE(Settings, '\"prowlarrUrl\": \"http://localhost:9696\"', '\"prowlarrUrl\": \"http://prowlarr:9696\"')"
+  become: true
+  when: prowlarr_backup.stat.exists
+
+# 16. Fix Sonarr root folder path
+- name: Fix Sonarr root folder path
   command: >
     sqlite3 /var/lib/docker/volumes/media_sonarr-config/_data/sonarr.db
-    "UPDATE RootFolders SET Path = '/tv' WHERE Path != '/tv'"
+    "UPDATE RootFolders SET Path = '/tv' WHERE Path = '/mnt/voidcentury/Shows'"
   become: true
   when: sonarr_backup.stat.exists
 
-# 14. Update Radarr root folder path
-- name: Update Radarr root folder path
+# 17. Fix Radarr root folder path
+- name: Fix Radarr root folder path
   command: >
     sqlite3 /var/lib/docker/volumes/media_radarr-config/_data/radarr.db
-    "UPDATE RootFolders SET Path = '/movies' WHERE Path != '/movies'"
+    "UPDATE RootFolders SET Path = '/movies' WHERE Path = '/mnt/voidcentury/Movies'"
   become: true
   when: radarr_backup.stat.exists
 
-# 15. Restart stack to pick up config changes
-- name: Restart media stack to apply config changes
-  community.docker.docker_compose_v2:
-    project_src: "{{ media_compose_dir }}"
-    state: restarted
+# 18. Set qBittorrent save paths
+- name: Login to qBittorrent
+  command: >
+    docker exec qbittorrent curl -s -c /tmp/qbt_cookies.txt
+    -d "username={{ qbittorrent_username }}&password={{ qbittorrent_password }}"
+    http://localhost:{{ qbittorrent_port }}/api/v2/auth/login
+  become: true
+  changed_when: false
+
+- name: Set qBittorrent save paths
+  command: >
+    docker exec qbittorrent curl -s -b /tmp/qbt_cookies.txt
+    -d 'json={"save_path":"/downloads/completed/","temp_path":"/downloads/in-progress/","temp_path_enabled":true}'
+    http://localhost:{{ qbittorrent_port }}/api/v2/app/setPreferences
+  become: true
+  changed_when: false
+
+# 19. Restart Sonarr, Radarr, Prowlarr to pick up database changes
+- name: Restart media apps to pick up database changes
+  community.docker.docker_container:
+    name: "{{ item }}"
+    state: started
+    restart: true
+  loop:
+    - sonarr
+    - radarr
+    - prowlarr
   become: true
   when: >
     sonarr_backup.stat.exists or
     radarr_backup.stat.exists or
-    prowlarr_backup.stat.exists or
-    jellyfin_backup.stat.exists
+    prowlarr_backup.stat.exists
