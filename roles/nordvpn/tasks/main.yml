@@ -28,11 +28,11 @@
     groups: nordvpn
     append: true
 
-- name: Login to NordVPN
-  command: nordvpn login --token {{ nordvpn_token }}
+- name: Login to NordVPN with token
+  shell: echo "{{ nordvpn_token }}" | nordvpn login --legacy-token
   register: nordvpn_login
   failed_when: false
-  changed_when: false
+  changed_when: "'already logged in' not in nordvpn_login.stdout | lower"
   timeout: 30
 
 - name: Check NordVPN login status

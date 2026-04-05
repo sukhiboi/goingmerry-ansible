@@ -12,6 +12,19 @@
   apt:
     upgrade: dist
 
+- name: Set locale environment variables
+  lineinfile:
+    path: /etc/environment
+    line: "{{ item }}"
+    create: true
+  loop:
+    - 'LANG=C.UTF-8'
+    - 'LC_ALL=C.UTF-8'
+
+- name: Generate locale
+  command: locale-gen C.UTF-8
+  changed_when: false
+
 - name: Set hostname
   hostname:
     name: "{{ hostname }}"
