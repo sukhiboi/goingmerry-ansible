@@ -4,12 +4,11 @@ hostname: goingmerry
 timezone: Asia/Kolkata
 
 # Users
-luffy_uid: 1000
-media_uid: 1001
-monitoring_uid: 1002
-media_gid: 1001
-monitoring_gid: 1002
-media_data_gid: 1003
+main_user: luffy
+media_user: media
+monitoring_user: monitoring
+media_data_group: media-data
+monitoring_group: monitoring
 
 # Storage
 external_drive_mount: /mnt/voidcentury

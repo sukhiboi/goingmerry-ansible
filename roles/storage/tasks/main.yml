@@ -19,6 +19,7 @@
     fstype: exfat
     opts: "uid={{ media_uid }},gid={{ media_data_gid }},umask=002,defaults,nofail"
     state: mounted
+  # media_uid and media_data_gid are set_fact'd in the users role
 
 - name: Create media directories on external drive
   file:

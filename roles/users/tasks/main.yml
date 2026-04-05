@@ -1,20 +1,17 @@
 ---
 - name: Create media-data group
   group:
-    name: media-data
-    gid: "{{ media_data_gid }}"
+    name: "{{ media_data_group }}"
     state: present
 
 - name: Create media group
   group:
-    name: media
-    gid: "{{ media_gid }}"
+    name: "{{ media_user }}"
     state: present
 
 - name: Create monitoring group
   group:
-    name: monitoring
-    gid: "{{ monitoring_gid }}"
+    name: "{{ monitoring_group }}"
     state: present
 
 - name: Create docker group
@@ -22,29 +19,27 @@
     name: docker
     state: present
 
-- name: Create luffy user
+- name: Add luffy to required groups
   user:
-    name: luffy
-    uid: "{{ luffy_uid }}"
+    name: "{{ main_user }}"
     shell: /bin/zsh
     groups:
       - sudo
       - docker
-      - media-data
-      - media
-      - monitoring
+      - "{{ media_data_group }}"
+      - "{{ media_user }}"
+      - "{{ monitoring_group }}"
     append: true
     state: present
     create_home: true
 
 - name: Create media user
   user:
-    name: media
-    uid: "{{ media_uid }}"
+    name: "{{ media_user }}"
     shell: /bin/false
     groups:
-      - media
-      - media-data
+      - "{{ media_user }}"
+      - "{{ media_data_group }}"
       - docker
     append: true
     state: present
@@ -53,11 +48,10 @@
 
 - name: Create monitoring user
   user:
-    name: monitoring
-    uid: "{{ monitoring_uid }}"
+    name: "{{ monitoring_user }}"
     shell: /bin/false
     groups:
-      - monitoring
+      - "{{ monitoring_group }}"
       - docker
     append: true
     state: present
@@ -67,8 +61,24 @@
 - name: Allow luffy to sudo without password
   copy:
     dest: /etc/sudoers.d/luffy
-    content: "luffy ALL=(ALL) NOPASSWD: ALL\n"
+    content: "{{ main_user }} ALL=(ALL) NOPASSWD: ALL\n"
     owner: root
     group: root
     mode: "0440"
     validate: /usr/sbin/visudo -cf %s
+
+- name: Resolve media UID
+  command: id -u {{ media_user }}
+  register: media_uid_result
+  changed_when: false
+
+- name: Resolve media-data GID
+  command: getent group {{ media_data_group }}
+  register: media_data_gid_result
+  changed_when: false
+
+- name: Set media_uid and media_data_gid facts
+  set_fact:
+    media_uid: "{{ media_uid_result.stdout }}"
+    media_gid: "{{ media_uid_result.stdout }}"
+    media_data_gid: "{{ media_data_gid_result.stdout.split(':')[2] }}"
