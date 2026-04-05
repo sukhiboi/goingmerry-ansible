@@ -53,13 +53,6 @@
     - nordvpn_lan.rc != 0
     - "'already' not in nordvpn_lan.stdout | lower"
 
-- name: Allow LAN subnet
-  command: nordvpn whitelist add subnet {{ nordvpn_lan_subnet }}
-  register: nordvpn_whitelist
-  changed_when: "'added' in nordvpn_whitelist.stdout | lower"
-  failed_when:
-    - nordvpn_whitelist.rc != 0
-    - "'already' not in nordvpn_whitelist.stdout | lower"
 
 - name: Enable autoconnect
   command: nordvpn set autoconnect enabled
