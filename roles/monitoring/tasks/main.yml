@@ -132,7 +132,7 @@
 
     - name: Copy influxdb backup into container and restore
       shell: |
-        docker cp {{ backup_base }}/influxdb-backup/influxdb-backup influxdb:/tmp/influxdb-backup
+        docker cp {{ backup_base }}/influxdb-backup/influxdb-backup influxdb:/tmp/
         docker exec influxdb influx restore /tmp/influxdb-backup \
           --host http://localhost:{{ influxdb_port }} \
           --token {{ influxdb_token }}
