@@ -1,2 +1,7 @@
 collections:
   - name: community.docker
+
+roles:
+  - name: ansible-output-prettify
+    src: https://github.com/roots/ansible-output-prettify
+    version: main
