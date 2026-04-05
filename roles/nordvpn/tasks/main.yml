@@ -28,13 +28,12 @@
     groups: nordvpn
     append: true
 
-- name: Log in to NordVPN with token
+- name: Login to NordVPN
   command: nordvpn login --token {{ nordvpn_token }}
-  async: 30
-  poll: 5
   register: nordvpn_login
   failed_when: false
-  changed_when: "'already logged in' not in nordvpn_login.stdout | lower"
+  changed_when: false
+  timeout: 30
 
 - name: Check NordVPN login status
   command: nordvpn account
