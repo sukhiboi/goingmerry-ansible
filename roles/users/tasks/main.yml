@@ -72,13 +72,18 @@
   register: media_uid_result
   changed_when: false
 
+- name: Resolve media GID
+  command: getent group {{ media_user }}
+  register: media_gid_result
+  changed_when: false
+
 - name: Resolve media-data GID
   command: getent group {{ media_data_group }}
   register: media_data_gid_result
   changed_when: false
 
-- name: Set media_uid and media_data_gid facts
+- name: Set resolved UID/GID facts
   set_fact:
-    media_uid: "{{ media_uid_result.stdout }}"
-    media_gid: "{{ media_uid_result.stdout }}"
+    media_uid_resolved: "{{ media_uid_result.stdout }}"
+    media_gid_resolved: "{{ media_gid_result.stdout.split(':')[2] }}"
     media_data_gid: "{{ media_data_gid_result.stdout.split(':')[2] }}"

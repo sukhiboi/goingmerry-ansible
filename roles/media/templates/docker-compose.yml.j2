@@ -11,8 +11,8 @@ services:
       - {{ external_drive_mount }}/Shows:/data/tvshows
       - {{ external_drive_mount }}/Movies:/data/movies
     environment:
-      - PUID={{ media_uid }}
-      - PGID={{ media_gid }}
+      - PUID={{ media_uid_resolved }}
+      - PGID={{ media_gid_resolved }}
       - TZ={{ timezone }}
 
   qbittorrent:
@@ -27,8 +27,8 @@ services:
       - {{ external_drive_mount }}/qbittorrent/in-progress:/downloads/in-progress
       - {{ external_drive_mount }}/torrents:/torrents
     environment:
-      - PUID={{ media_uid }}
-      - PGID={{ media_gid }}
+      - PUID={{ media_uid_resolved }}
+      - PGID={{ media_gid_resolved }}
       - TZ={{ timezone }}
       - WEBUI_PORT={{ qbittorrent_port }}
 
@@ -43,8 +43,8 @@ services:
       - {{ external_drive_mount }}/Shows:/tv
       - {{ external_drive_mount }}/qbittorrent/completed:/downloads/completed
     environment:
-      - PUID={{ media_uid }}
-      - PGID={{ media_gid }}
+      - PUID={{ media_uid_resolved }}
+      - PGID={{ media_gid_resolved }}
       - TZ={{ timezone }}
 
   radarr:
@@ -58,8 +58,8 @@ services:
       - {{ external_drive_mount }}/Movies:/movies
       - {{ external_drive_mount }}/qbittorrent/completed:/downloads/completed
     environment:
-      - PUID={{ media_uid }}
-      - PGID={{ media_gid }}
+      - PUID={{ media_uid_resolved }}
+      - PGID={{ media_gid_resolved }}
       - TZ={{ timezone }}
 
   prowlarr:
@@ -71,8 +71,8 @@ services:
     volumes:
       - prowlarr-config:/config
     environment:
-      - PUID={{ media_uid }}
-      - PGID={{ media_gid }}
+      - PUID={{ media_uid_resolved }}
+      - PGID={{ media_gid_resolved }}
       - TZ={{ timezone }}
 
 volumes:

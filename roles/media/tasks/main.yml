@@ -40,8 +40,8 @@
       copy:
         src: "{{ backup_base }}/sonarr-config/"
         dest: /var/lib/docker/volumes/media_sonarr-config/_data/
-        owner: "{{ media_uid }}"
-        group: "{{ media_gid }}"
+        owner: "{{ media_uid_resolved }}"
+        group: "{{ media_gid_resolved }}"
         mode: preserve
       when: sonarr_backup.stat.exists
 
@@ -63,8 +63,8 @@
       copy:
         src: "{{ backup_base }}/radarr-config/"
         dest: /var/lib/docker/volumes/media_radarr-config/_data/
-        owner: "{{ media_uid }}"
-        group: "{{ media_gid }}"
+        owner: "{{ media_uid_resolved }}"
+        group: "{{ media_gid_resolved }}"
         mode: preserve
       when: radarr_backup.stat.exists
 
@@ -86,8 +86,8 @@
       copy:
         src: "{{ backup_base }}/prowlarr-config/"
         dest: /var/lib/docker/volumes/media_prowlarr-config/_data/
-        owner: "{{ media_uid }}"
-        group: "{{ media_gid }}"
+        owner: "{{ media_uid_resolved }}"
+        group: "{{ media_gid_resolved }}"
         mode: preserve
       when: prowlarr_backup.stat.exists
 
