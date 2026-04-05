@@ -35,12 +35,10 @@
   changed_when: false
 
 - name: Login to NordVPN with token
-  command: nordvpn login --token {{ nordvpn_token }}
+  shell: echo 'n' | nordvpn login --token {{ nordvpn_token }}
   register: nordvpn_login
   failed_when: false
-  changed_when: false
-  async: 20
-  poll: 2
+  changed_when: "'welcome' in nordvpn_login.stdout | lower"
   when: "'not logged in' in nordvpn_account.stdout | lower or 'you are not' in nordvpn_account.stdout | lower"
 
 - name: Set NordVPN lan-discovery
