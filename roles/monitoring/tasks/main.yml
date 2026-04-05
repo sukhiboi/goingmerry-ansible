@@ -41,7 +41,7 @@
     dest: "{{ monitoring_compose_dir }}/config/telegraf.conf"
     owner: monitoring
     group: monitoring
-    mode: "0640"
+    mode: "0644"
   notify: restart monitoring stack
 
 - name: Deploy telegraf-goingmerry.conf
@@ -50,7 +50,7 @@
     dest: "{{ monitoring_compose_dir }}/config/telegraf-goingmerry.conf"
     owner: monitoring
     group: monitoring
-    mode: "0640"
+    mode: "0644"
   notify: restart monitoring stack
 
 - name: Deploy monitoring docker-compose.yml
@@ -59,7 +59,7 @@
     dest: "{{ monitoring_compose_dir }}/docker-compose.yml"
     owner: monitoring
     group: monitoring
-    mode: "0640"
+    mode: "0644"
   notify: restart monitoring stack
 
 - name: Start monitoring stack
