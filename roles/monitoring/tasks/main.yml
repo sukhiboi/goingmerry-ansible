@@ -70,14 +70,13 @@
   register: monitoring_stack
 
 - name: Wait for InfluxDB to be ready
-  uri:
-    url: "http://localhost:{{ influxdb_port }}/health"
-    method: GET
-    status_code: 200
-  register: influxdb_health
+  command: docker exec influxdb influx ping
+  register: influxdb_ping
   retries: 15
   delay: 5
-  until: influxdb_health.status == 200
+  until: influxdb_ping.rc == 0
+  changed_when: false
+  become: true
 
 # InfluxDB init (org, admin user, password, network bucket, token) is fully handled
 # by DOCKER_INFLUXDB_INIT_* env vars in docker-compose.yml on first start.
