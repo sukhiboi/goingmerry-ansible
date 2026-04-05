@@ -33,6 +33,7 @@
     mode: "0640"
   notify: restart media stack
 
+# 1. Start stack initially
 - name: Start media stack
   community.docker.docker_compose_v2:
     project_src: "{{ media_compose_dir }}"
@@ -71,91 +72,148 @@
   become: true
   when: qbt_temp_password.stdout != ''
 
+# 2. Check all backups
+- name: Check sonarr backup exists
+  stat:
+    path: "{{ backup_base }}/sonarr-config"
+  register: sonarr_backup
+
+- name: Check radarr backup exists
+  stat:
+    path: "{{ backup_base }}/radarr-config"
+  register: radarr_backup
+
+- name: Check prowlarr backup exists
+  stat:
+    path: "{{ backup_base }}/prowlarr-config"
+  register: prowlarr_backup
+
+- name: Check jellyfin backup exists
+  stat:
+    path: "{{ backup_base }}/jellyfin-config"
+  register: jellyfin_backup
+
+# 3. Stop stack if any backup exists
+- name: Stop media stack for restores
+  community.docker.docker_compose_v2:
+    project_src: "{{ media_compose_dir }}"
+    state: stopped
+  become: true
+  when: >
+    sonarr_backup.stat.exists or
+    radarr_backup.stat.exists or
+    prowlarr_backup.stat.exists or
+    jellyfin_backup.stat.exists
+
+# 4-7. Restore configs
 - name: Restore sonarr config from backup
-  block:
-    - name: Check sonarr backup exists
-      stat:
-        path: "{{ backup_base }}/sonarr-config"
-      register: sonarr_backup
-
-    - name: Stop media stack for sonarr restore
-      community.docker.docker_compose_v2:
-        project_src: "{{ media_compose_dir }}"
-        state: stopped
-      become: true
-      when: sonarr_backup.stat.exists
-
-    - name: Copy sonarr backup to volume
-      copy:
-        src: "{{ backup_base }}/sonarr-config/"
-        dest: /var/lib/docker/volumes/media_sonarr-config/_data/
-        owner: "{{ media_uid_resolved }}"
-        group: "{{ media_gid_resolved }}"
-        mode: preserve
-      when: sonarr_backup.stat.exists
-
-    - name: Update qBittorrent hostname in Sonarr database
-      command: >
-        sqlite3 /var/lib/docker/volumes/media_sonarr-config/_data/sonarr.db
-        "UPDATE DownloadClients SET Settings = REPLACE(Settings, '\"host\": \"goingmerry\"', '\"host\": \"qbittorrent\"')"
-      become: true
-      when: sonarr_backup.stat.exists
-
-    - name: Update qBittorrent password in Sonarr database
-      command: >
-        sqlite3 /var/lib/docker/volumes/media_sonarr-config/_data/sonarr.db
-        "UPDATE DownloadClients SET Settings = json_set(Settings, '$.password', '{{ qbittorrent_password }}') WHERE Implementation = 'QBittorrent'"
-      become: true
-      when: sonarr_backup.stat.exists
+  copy:
+    src: "{{ backup_base }}/sonarr-config/"
+    dest: /var/lib/docker/volumes/media_sonarr-config/_data/
+    owner: "{{ media_uid_resolved }}"
+    group: "{{ media_gid_resolved }}"
+    mode: preserve
+  become: true
+  when: sonarr_backup.stat.exists
 
 - name: Restore radarr config from backup
-  block:
-    - name: Check radarr backup exists
-      stat:
-        path: "{{ backup_base }}/radarr-config"
-      register: radarr_backup
-
-    - name: Copy radarr backup to volume
-      copy:
-        src: "{{ backup_base }}/radarr-config/"
-        dest: /var/lib/docker/volumes/media_radarr-config/_data/
-        owner: "{{ media_uid_resolved }}"
-        group: "{{ media_gid_resolved }}"
-        mode: preserve
-      when: radarr_backup.stat.exists
-
-    - name: Update qBittorrent hostname in Radarr database
-      command: >
-        sqlite3 /var/lib/docker/volumes/media_radarr-config/_data/radarr.db
-        "UPDATE DownloadClients SET Settings = REPLACE(Settings, '\"host\": \"goingmerry\"', '\"host\": \"qbittorrent\"')"
-      become: true
-      when: radarr_backup.stat.exists
-
-    - name: Update qBittorrent password in Radarr database
-      command: >
-        sqlite3 /var/lib/docker/volumes/media_radarr-config/_data/radarr.db
-        "UPDATE DownloadClients SET Settings = json_set(Settings, '$.password', '{{ qbittorrent_password }}') WHERE Implementation = 'QBittorrent'"
-      become: true
-      when: radarr_backup.stat.exists
+  copy:
+    src: "{{ backup_base }}/radarr-config/"
+    dest: /var/lib/docker/volumes/media_radarr-config/_data/
+    owner: "{{ media_uid_resolved }}"
+    group: "{{ media_gid_resolved }}"
+    mode: preserve
+  become: true
+  when: radarr_backup.stat.exists
 
 - name: Restore prowlarr config from backup
-  block:
-    - name: Check prowlarr backup exists
-      stat:
-        path: "{{ backup_base }}/prowlarr-config"
-      register: prowlarr_backup
+  copy:
+    src: "{{ backup_base }}/prowlarr-config/"
+    dest: /var/lib/docker/volumes/media_prowlarr-config/_data/
+    owner: "{{ media_uid_resolved }}"
+    group: "{{ media_gid_resolved }}"
+    mode: preserve
+  become: true
+  when: prowlarr_backup.stat.exists
 
-    - name: Copy prowlarr backup to volume
-      copy:
-        src: "{{ backup_base }}/prowlarr-config/"
-        dest: /var/lib/docker/volumes/media_prowlarr-config/_data/
-        owner: "{{ media_uid_resolved }}"
-        group: "{{ media_gid_resolved }}"
-        mode: preserve
-      when: prowlarr_backup.stat.exists
+- name: Restore jellyfin config from backup
+  copy:
+    src: "{{ backup_base }}/jellyfin-config/"
+    dest: /var/lib/docker/volumes/media_jellyfin-config/_data/
+    owner: "{{ media_uid_resolved }}"
+    group: "{{ media_gid_resolved }}"
+    mode: preserve
+  become: true
+  when: jellyfin_backup.stat.exists
 
+# 8. Start stack after restores
 - name: Start media stack after restores
   community.docker.docker_compose_v2:
     project_src: "{{ media_compose_dir }}"
     state: present
   become: true
+  when: >
+    sonarr_backup.stat.exists or
+    radarr_backup.stat.exists or
+    prowlarr_backup.stat.exists or
+    jellyfin_backup.stat.exists
+
+# 9. Update qBittorrent hostname in Sonarr
+- name: Update qBittorrent hostname in Sonarr database
+  command: >
+    sqlite3 /var/lib/docker/volumes/media_sonarr-config/_data/sonarr.db
+    "UPDATE DownloadClients SET Settings = REPLACE(Settings, '\"host\": \"goingmerry\"', '\"host\": \"qbittorrent\"')"
+  become: true
+  when: sonarr_backup.stat.exists
+
+# 10. Update qBittorrent hostname in Radarr
+- name: Update qBittorrent hostname in Radarr database
+  command: >
+    sqlite3 /var/lib/docker/volumes/media_radarr-config/_data/radarr.db
+    "UPDATE DownloadClients SET Settings = REPLACE(Settings, '\"host\": \"goingmerry\"', '\"host\": \"qbittorrent\"')"
+  become: true
+  when: radarr_backup.stat.exists
+
+# 11. Update qBittorrent password in Sonarr
+- name: Update qBittorrent password in Sonarr database
+  command: >
+    sqlite3 /var/lib/docker/volumes/media_sonarr-config/_data/sonarr.db
+    "UPDATE DownloadClients SET Settings = json_set(Settings, '$.password', '{{ qbittorrent_password }}') WHERE Implementation = 'QBittorrent'"
+  become: true
+  when: sonarr_backup.stat.exists
+
+# 12. Update qBittorrent password in Radarr
+- name: Update qBittorrent password in Radarr database
+  command: >
+    sqlite3 /var/lib/docker/volumes/media_radarr-config/_data/radarr.db
+    "UPDATE DownloadClients SET Settings = json_set(Settings, '$.password', '{{ qbittorrent_password }}') WHERE Implementation = 'QBittorrent'"
+  become: true
+  when: radarr_backup.stat.exists
+
+# 13. Update Sonarr root folder path
+- name: Update Sonarr root folder path
+  command: >
+    sqlite3 /var/lib/docker/volumes/media_sonarr-config/_data/sonarr.db
+    "UPDATE RootFolders SET Path = '/tv' WHERE Path != '/tv'"
+  become: true
+  when: sonarr_backup.stat.exists
+
+# 14. Update Radarr root folder path
+- name: Update Radarr root folder path
+  command: >
+    sqlite3 /var/lib/docker/volumes/media_radarr-config/_data/radarr.db
+    "UPDATE RootFolders SET Path = '/movies' WHERE Path != '/movies'"
+  become: true
+  when: radarr_backup.stat.exists
+
+# 15. Restart stack to pick up config changes
+- name: Restart media stack to apply config changes
+  community.docker.docker_compose_v2:
+    project_src: "{{ media_compose_dir }}"
+    state: restarted
+  become: true
+  when: >
+    sonarr_backup.stat.exists or
+    radarr_backup.stat.exists or
+    prowlarr_backup.stat.exists or
+    jellyfin_backup.stat.exists
