@@ -16,7 +16,7 @@
     - { role: dotfiles, tags: dotfiles }
     - { role: docker, tags: docker }
     - { role: storage, tags: storage }
-    # nordvpn is not run here — set it up manually after the playbook completes (see manual-steps.md)
+    - { role: nordvpn, tags: nordvpn}
     - { role: monitoring, tags: monitoring }
     - { role: media, tags: media }
     - { role: caddy, tags: caddy }
