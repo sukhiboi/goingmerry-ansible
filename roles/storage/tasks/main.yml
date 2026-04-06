@@ -1,4 +1,21 @@
 ---
+- name: Get media user UID
+  getent:
+    database: passwd
+    key: media
+  register: media_passwd
+
+- name: Get media-data group GID
+  getent:
+    database: group
+    key: media-data
+  register: media_data_group
+
+- name: Set media UID and GID facts
+  set_fact:
+    media_uid_resolved: "{{ media_passwd.ansible_facts.getent_passwd.media[1] }}"
+    media_gid_resolved: "{{ media_data_group.ansible_facts.getent_group['media-data'][1] }}"
+
 - name: Install exfat support
   apt:
     name:
@@ -17,9 +34,8 @@
     path: "{{ external_drive_mount }}"
     src: "UUID={{ external_drive_uuid }}"
     fstype: exfat
-    opts: "uid={{ media_uid }},gid={{ media_data_gid }},umask=002,defaults,nofail"
+    opts: "uid={{ media_uid_resolved }},gid={{ media_gid_resolved }},umask=002,defaults,nofail"
     state: mounted
-  # media_uid and media_data_gid are set_fact'd in the users role
 
 - name: Create media directories on external drive
   file:
