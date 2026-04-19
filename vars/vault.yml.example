@@ -9,5 +9,6 @@ influxdb_admin_password: ""
 influxdb_token: ""        # pre-define this — used for both InfluxDB setup and Telegraf
 grafana_admin_password: ""
 external_drive_uuid: ""   # find it with: lsblk -f
+onepiece_drive_uuid: ""  # find it with: lsblk -f
 openwrt_root_password: "" # leave empty if OpenWrt has no root password set
 qbittorrent_password: ""

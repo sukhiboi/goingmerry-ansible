@@ -2,6 +2,7 @@
 # System
 hostname: goingmerry
 timezone: Asia/Kolkata
+onepiece_mount: /mnt/onepiece
 packages:
   - vim
   - zsh
