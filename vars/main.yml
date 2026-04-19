@@ -15,6 +15,7 @@ packages:
   - net-tools
   - sshpass
   - sqlite3
+  - tmux
 
 # Users
 main_user: luffy
