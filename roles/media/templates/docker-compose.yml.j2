@@ -8,10 +8,8 @@ services:
       - media-net
     volumes:
       - jellyfin-config:/config
-      - {{ external_drive_mount }}/Shows:/data/tvshows
-      - {{ external_drive_mount }}/Movies:/data/movies
-      - {{ onepiece_mount }}/Movies:/data/onepiece/movies
-      - {{ onepiece_mount }}/Shows:/data/onepiece/tvshows
+      - {{ external_drive_mount }}/data:/voidcentury
+      - {{ onepiece_mount }}/data:/onepiece
     environment:
       - PUID={{ media_uid_resolved }}
       - PGID={{ media_gid_resolved }}
@@ -25,9 +23,9 @@ services:
       - media-net
     volumes:
       - qbittorrent-config:/config
-      - {{ external_drive_mount }}/qbittorrent/completed:/downloads/completed
-      - {{ external_drive_mount }}/qbittorrent/in-progress:/downloads/in-progress
-      - {{ external_drive_mount }}/torrents:/torrents
+      - /home/{{ main_user }}/qbittorrent/completed:/downloads/completed
+      - /home/{{ main_user }}/qbittorrent/in-progress:/downloads/in-progress
+      - /home/{{ main_user }}/torrents:/torrents
     environment:
       - PUID={{ media_uid_resolved }}
       - PGID={{ media_gid_resolved }}
@@ -42,9 +40,9 @@ services:
       - media-net
     volumes:
       - sonarr-config:/config
-      - {{ external_drive_mount }}/Shows:/tv
-      - {{ onepiece_mount }}/Shows:/onepiece
-      - {{ external_drive_mount }}/qbittorrent/completed:/downloads/completed
+      - {{ external_drive_mount }}/data:/voidcentry
+      - {{ onepiece_mount }}/data:/onepiece
+      - /home/{{ main_user }}/qbittorrent/completed:/downloads/completed
     environment:
       - PUID={{ media_uid_resolved }}
       - PGID={{ media_gid_resolved }}
@@ -58,8 +56,9 @@ services:
       - media-net
     volumes:
       - radarr-config:/config
-      - {{ external_drive_mount }}/Movies:/movies
-      - {{ external_drive_mount }}/qbittorrent/completed:/downloads/completed
+      - {{ external_drive_mount }}/data:/voidcentry
+      - {{ onepiece_mount }}/data:/onepiece
+      - /home/{{ main_user }}/qbittorrent/completed:/downloads/completed
     environment:
       - PUID={{ media_uid_resolved }}
       - PGID={{ media_gid_resolved }}
