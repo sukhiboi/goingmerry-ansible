@@ -23,73 +23,27 @@
       - fuse
     state: present
 
-- name: Create mount point for external drive
+- name: Create mount points for drives
   file:
-    path: "{{ external_drive_mount }}"
+    path: "{{ item.mount }}"
     state: directory
     mode: "0775"
+  loop: "{{ storage_drives }}"
 
-- name: Add external drive to fstab
+- name: Add drives to fstab
   mount:
-    path: "{{ external_drive_mount }}"
-    src: "UUID={{ external_drive_uuid }}"
-    fstype: exfat
+    path: "{{ item.mount }}"
+    src: "UUID={{ item.uuid }}"
+    fstype: "{{ item.fstype }}"
     opts: "uid={{ media_uid_resolved }},gid={{ media_gid_resolved }},umask=002,defaults,nofail"
     state: mounted
+  loop: "{{ storage_drives }}"
 
-- name: Create media directories on external drive
+- name: Ensure correct ownership on mount roots
   file:
-    path: "{{ external_drive_mount }}/{{ item }}"
-    state: directory
+    path: "{{ item.mount }}"
     owner: media
     group: media-data
     mode: "0775"
-  loop:
-    - Shows
-    - Movies
-    - qbittorrent/completed
-    - qbittorrent/in-progress
-    - torrents
+  loop: "{{ storage_drives }}"
 
-- name: Ensure correct ownership on mount root
-  file:
-    path: "{{ external_drive_mount }}"
-    owner: media
-    group: media-data
-    mode: "0775"
-
-- name: Create onepiece mount point
-  file:
-    path: "{{ onepiece_mount }}"
-    state: directory
-    mode: "0775"
-  become: true
-
-- name: Add onepiece drive to fstab
-  mount:
-    path: "{{ onepiece_mount }}"
-    src: "UUID={{ onepiece_drive_uuid }}"
-    fstype: ext4
-    opts: "defaults,nofail"
-    state: mounted
-  become: true
-
-- name: Set onepiece drive ownership
-  file:
-    path: "{{ onepiece_mount }}"
-    owner: media
-    group: media-data
-    mode: "0775"
-  become: true
-
-- name: Create onepiece directory structure
-  file:
-    path: "{{ onepiece_mount }}/{{ item }}"
-    state: directory
-    owner: media
-    group: media-data
-    mode: "0775"
-  loop:
-    - Shows
-    - Movies
-  become: true

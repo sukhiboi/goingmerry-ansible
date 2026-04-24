@@ -242,7 +242,7 @@
 - name: Set qBittorrent save paths
   command: >
     docker exec qbittorrent curl -s -b /tmp/qbt_cookies.txt
-    -d 'json={"save_path":"/downloads/completed/","temp_path":"/downloads/in-progress/","temp_path_enabled":true}'
+    -d 'json={"save_path":"/qbittorrent/completed/","temp_path":"/qbittorrent/in-progress/","temp_path_enabled":true}'
     http://localhost:{{ qbittorrent_port }}/api/v2/app/setPreferences
   become: true
   changed_when: false

@@ -28,6 +28,14 @@ monitoring_group: monitoring
 # Storage
 external_drive_mount: /mnt/voidcentury
 
+storage_drives:
+  - mount: "{{ external_drive_mount }}"
+    uuid: "{{ external_drive_uuid }}"
+    fstype: exfat
+  - mount: "{{ onepiece_mount }}"
+    uuid: "{{ onepiece_drive_uuid }}"
+    fstype: exfat
+
 # InfluxDB
 influxdb_org: goingmerry
 influxdb_bucket_network: network
