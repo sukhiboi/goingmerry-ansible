@@ -34,7 +34,7 @@ storage_drives:
     fstype: exfat
   - mount: "{{ onepiece_mount }}"
     uuid: "{{ onepiece_drive_uuid }}"
-    fstype: exfat
+    fstype: ext4
 
 # InfluxDB
 influxdb_org: goingmerry
