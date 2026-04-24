@@ -23,8 +23,8 @@ services:
       - media-net
     volumes:
       - qbittorrent-config:/config
-      - /home/{{ main_user }}/qbittorrent/completed:/downloads/completed
-      - /home/{{ main_user }}/qbittorrent/in-progress:/downloads/in-progress
+      - /home/{{ main_user }}/qbittorrent/completed:/qbittorrent/completed
+      - /home/{{ main_user }}/qbittorrent/in-progress:/qbittorrent/in-progress
       - /home/{{ main_user }}/torrents:/torrents
     environment:
       - PUID={{ media_uid_resolved }}
@@ -40,9 +40,9 @@ services:
       - media-net
     volumes:
       - sonarr-config:/config
-      - {{ external_drive_mount }}/data:/voidcentry
+      - /home/{{ main_user }}/qbittorrent/completed:/qbittorrent/completed
+      - {{ external_drive_mount }}/data:/voidcentury
       - {{ onepiece_mount }}/data:/onepiece
-      - /home/{{ main_user }}/qbittorrent/completed:/downloads/completed
     environment:
       - PUID={{ media_uid_resolved }}
       - PGID={{ media_gid_resolved }}
@@ -56,9 +56,9 @@ services:
       - media-net
     volumes:
       - radarr-config:/config
-      - {{ external_drive_mount }}/data:/voidcentry
+      - /home/{{ main_user }}/qbittorrent/completed:/qbittorrent/completed
+      - {{ external_drive_mount }}/data:/voidcentury
       - {{ onepiece_mount }}/data:/onepiece
-      - /home/{{ main_user }}/qbittorrent/completed:/downloads/completed
     environment:
       - PUID={{ media_uid_resolved }}
       - PGID={{ media_gid_resolved }}
