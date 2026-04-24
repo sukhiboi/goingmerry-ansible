@@ -11,7 +11,7 @@ services:
       - {{ external_drive_mount }}/Shows:/data/tvshows
       - {{ external_drive_mount }}/Movies:/data/movies
       - {{ onepiece_mount }}/Movies:/data/onepiece/movies
-      - {{ onepiece_mount }}/Movies:/data/onepiece/tvshows
+      - {{ onepiece_mount }}/Shows:/data/onepiece/tvshows
     environment:
       - PUID={{ media_uid_resolved }}
       - PGID={{ media_gid_resolved }}
@@ -43,7 +43,7 @@ services:
     volumes:
       - sonarr-config:/config
       - {{ external_drive_mount }}/Shows:/tv
-      - {{ onepiece_mount }}/Shows:/tv/onepiece
+      - {{ onepiece_mount }}/Shows:/onepiece
       - {{ external_drive_mount }}/qbittorrent/completed:/downloads/completed
     environment:
       - PUID={{ media_uid_resolved }}
