@@ -12,9 +12,9 @@
   apt:
     upgrade: dist
 
-- name: Generate locale
-  command: "sudo sed -i 's/# en_IN UTF-8/en_IN UTF-8/' /etc/locale.gen && sudo locale-gen"
-  changed_when: false
+#- name: Generate locale
+#  command: "sudo sed -i 's/# en_IN UTF-8/en_IN UTF-8/' /etc/locale.gen && sudo locale-gen"
+#  changed_when: false
 
 - name: Set hostname
   hostname:
