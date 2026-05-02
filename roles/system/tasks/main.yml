@@ -12,17 +12,8 @@
   apt:
     upgrade: dist
 
-- name: Set locale environment variables
-  lineinfile:
-    path: /etc/environment
-    line: "{{ item }}"
-    create: true
-  loop:
-    - 'LANG=C.UTF-8'
-    - 'LC_ALL=C.UTF-8'
-
 - name: Generate locale
-  command: locale-gen C.UTF-8
+  command: sudo sed -i 's/# en_IN UTF-8/en_IN UTF-8/' /etc/locale.gen && sudo locale-gen
   changed_when: false
 
 - name: Set hostname
