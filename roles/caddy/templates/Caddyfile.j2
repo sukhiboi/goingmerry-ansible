@@ -9,7 +9,7 @@ http://tv.{{ domain }} {
 }
 
 http://cargo.{{ domain }} {
-    reverse_proxy qbittorrent:{{ qbittorrent_port }}
+    reverse_proxy gluetun:{{ qbittorrent_port }}
 }
 
 http://sonarr.{{ domain }} {
