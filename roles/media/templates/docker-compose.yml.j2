@@ -4,6 +4,9 @@ services:
     image: lscr.io/linuxserver/jellyfin:latest
     container_name: jellyfin
     restart: unless-stopped
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
     networks:
       - media-net
     volumes:
@@ -63,6 +66,9 @@ services:
     image: lscr.io/linuxserver/sonarr:latest
     container_name: sonarr
     restart: unless-stopped
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
     networks:
       - media-net
     volumes:
@@ -78,6 +84,9 @@ services:
     image: lscr.io/linuxserver/radarr:latest
     container_name: radarr
     restart: unless-stopped
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
     networks:
       - media-net
     volumes:
@@ -91,6 +100,9 @@ services:
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:latest
     container_name: prowlarr
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
     restart: unless-stopped
     networks:
       - media-net
