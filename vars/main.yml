@@ -2,7 +2,6 @@
 # System
 hostname: goingmerry
 timezone: Asia/Kolkata
-onepiece_mount: /mnt/onepiece
 packages:
   - vim
   - zsh
@@ -26,15 +25,16 @@ media_data_group: media-data
 monitoring_group: monitoring
 
 # Storage
-external_drive_mount: /mnt/voidcentury
+hdd1_mount: /mnt/onepiece
+hdd2_mount: /mnt/library
 
 storage_drives:
-  - mount: "{{ external_drive_mount }}"
-    uuid: "{{ external_drive_uuid }}"
-    fstype: exfat
-  - mount: "{{ onepiece_mount }}"
-    uuid: "{{ onepiece_drive_uuid }}"
-    fstype: exfat
+  - mount: "{{ hdd1_mount }}"
+    uuid: "{{ hdd1_uuid }}"
+    fstype: ext4
+  - mount: "{{ hdd2_mount }}"
+    uuid: "{{ hdd2_uuid }}"
+    fstype: ext4
 
 # InfluxDB
 influxdb_org: goingmerry

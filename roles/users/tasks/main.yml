@@ -19,7 +19,32 @@
     name: docker
     state: present
 
-- name: Add luffy to required groups
+- name: Create media user
+  user:
+    name: "{{ media_user }}"
+    shell: /usr/sbin/nologin
+    group: "{{ media_user }}"
+    groups:
+      - "{{ media_data_group }}"
+      - docker
+    append: true
+    state: present
+    create_home: false
+    system: true
+
+- name: Create monitoring user
+  user:
+    name: "{{ monitoring_user }}"
+    shell: /usr/sbin/nologin
+    group: "{{ monitoring_group }}"
+    groups:
+      - docker
+    append: true
+    state: present
+    create_home: false
+    system: true
+
+- name: Add main user to required groups
   user:
     name: "{{ main_user }}"
     shell: /bin/zsh
@@ -33,34 +58,9 @@
     state: present
     create_home: true
 
-- name: Create media user
-  user:
-    name: "{{ media_user }}"
-    shell: /bin/false
-    groups:
-      - "{{ media_user }}"
-      - "{{ media_data_group }}"
-      - docker
-    append: true
-    state: present
-    create_home: false
-    system: true
-
-- name: Create monitoring user
-  user:
-    name: "{{ monitoring_user }}"
-    shell: /bin/false
-    groups:
-      - "{{ monitoring_group }}"
-      - docker
-    append: true
-    state: present
-    create_home: false
-    system: true
-
-- name: Allow luffy to sudo without password
+- name: Allow main user to sudo without password
   copy:
-    dest: /etc/sudoers.d/luffy
+    dest: "/etc/sudoers.d/{{ main_user }}"
     content: "{{ main_user }} ALL=(ALL) NOPASSWD: ALL\n"
     owner: root
     group: root

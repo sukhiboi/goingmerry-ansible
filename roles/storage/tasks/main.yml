@@ -1,32 +1,16 @@
 ---
-- name: Get media user UID
-  getent:
-    database: passwd
-    key: media
-  register: media_passwd
-
-- name: Get media-data group GID
-  getent:
-    database: group
-    key: media-data
-  register: media_data_group
-
-- name: Set media UID and GID facts
-  set_fact:
-    media_uid_resolved: "{{ media_passwd.ansible_facts.getent_passwd.media[1] }}"
-    media_gid_resolved: "{{ media_data_group.ansible_facts.getent_group['media-data'][1] }}"
-
-- name: Install exfat support
+- name: Install ext4 support tools
   apt:
     name:
-      - exfatprogs
-      - fuse
+      - e2fsprogs
     state: present
 
 - name: Create mount points for drives
   file:
     path: "{{ item.mount }}"
     state: directory
+    owner: "{{ media_user }}"
+    group: "{{ media_data_group }}"
     mode: "0775"
   loop: "{{ storage_drives }}"
 
@@ -35,15 +19,47 @@
     path: "{{ item.mount }}"
     src: "UUID={{ item.uuid }}"
     fstype: "{{ item.fstype }}"
-    opts: "uid={{ media_uid_resolved }},gid={{ media_gid_resolved }},umask=002,defaults,nofail"
+    opts: "defaults,nofail,noatime"
     state: mounted
   loop: "{{ storage_drives }}"
 
 - name: Ensure correct ownership on mount roots
   file:
     path: "{{ item.mount }}"
-    owner: media
-    group: media-data
-    mode: "0775"
+    owner: "{{ media_user }}"
+    group: "{{ media_data_group }}"
+    mode: "2775"
   loop: "{{ storage_drives }}"
 
+- name: Create directory structure on onepiece drive (hdd1)
+  file:
+    path: "{{ hdd1_mount }}/{{ item }}"
+    state: directory
+    owner: "{{ media_user }}"
+    group: "{{ media_data_group }}"
+    mode: "2775"
+  loop:
+    - downloads
+    - downloads/incomplete
+    - downloads/complete
+    - media
+    - media/anime
+    - media/anime/one-piece
+
+- name: Create directory structure on library drive (hdd2)
+  file:
+    path: "{{ hdd2_mount }}/{{ item }}"
+    state: directory
+    owner: "{{ media_user }}"
+    group: "{{ media_data_group }}"
+    mode: "2775"
+  loop:
+    - downloads
+    - downloads/incomplete
+    - downloads/complete
+    - downloads/complete/movies
+    - downloads/complete/tv
+    - media
+    - media/movies
+    - media/tv
+    - photos

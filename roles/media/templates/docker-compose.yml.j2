@@ -8,8 +8,8 @@ services:
       - media-net
     volumes:
       - jellyfin-config:/config
-      - {{ external_drive_mount }}/data:/voidcentury
-      - {{ onepiece_mount }}/data:/onepiece
+      - {{ hdd1_mount }}:/data/onepiece
+      - {{ hdd2_mount }}:/data/library
     environment:
       - PUID={{ media_uid_resolved }}
       - PGID={{ media_gid_resolved }}
@@ -23,9 +23,8 @@ services:
       - media-net
     volumes:
       - qbittorrent-config:/config
-      - /home/{{ main_user }}/qbittorrent/completed:/qbittorrent/completed
-      - /home/{{ main_user }}/qbittorrent/in-progress:/qbittorrent/in-progress
-      - /home/{{ main_user }}/torrents:/torrents
+      - {{ hdd1_mount }}:/data/onepiece
+      - {{ hdd2_mount }}:/data/library
     environment:
       - PUID={{ media_uid_resolved }}
       - PGID={{ media_gid_resolved }}
@@ -40,9 +39,8 @@ services:
       - media-net
     volumes:
       - sonarr-config:/config
-      - /home/{{ main_user }}/qbittorrent/completed:/qbittorrent/completed
-      - {{ external_drive_mount }}/data:/voidcentury
-      - {{ onepiece_mount }}/data:/onepiece
+      - {{ hdd1_mount }}:/data/onepiece
+      - {{ hdd2_mount }}:/data/library
     environment:
       - PUID={{ media_uid_resolved }}
       - PGID={{ media_gid_resolved }}
@@ -56,9 +54,7 @@ services:
       - media-net
     volumes:
       - radarr-config:/config
-      - /home/{{ main_user }}/qbittorrent/completed:/qbittorrent/completed
-      - {{ external_drive_mount }}/data:/voidcentury
-      - {{ onepiece_mount }}/data:/onepiece
+      - {{ hdd2_mount }}:/data/library
     environment:
       - PUID={{ media_uid_resolved }}
       - PGID={{ media_gid_resolved }}

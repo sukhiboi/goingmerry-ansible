@@ -65,7 +65,7 @@ services:
       - /proc:/host/proc:ro
       - /sys:/host/sys:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - {{ external_drive_mount }}:{{ external_drive_mount }}:ro
+      - {{ hdd1_mount }}:{{ hdd1_mount }}:ro
     environment:
       - HOST_PROC=/host/proc
       - HOST_SYS=/host/sys
