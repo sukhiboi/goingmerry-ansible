@@ -40,7 +40,6 @@
     mode: "2775"
   loop:
     - downloads
-    - downloads/incomplete
     - downloads/complete
     - media
     - media/anime
@@ -55,7 +54,6 @@
     mode: "2775"
   loop:
     - downloads
-    - downloads/incomplete
     - downloads/complete
     - downloads/complete/movies
     - downloads/complete/tv

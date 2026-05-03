@@ -4,8 +4,6 @@ services:
     image: lscr.io/linuxserver/jellyfin:latest
     container_name: jellyfin
     restart: unless-stopped
-    networks:
-      - media-net
     volumes:
       - jellyfin-config:/config
       - {{ hdd1_mount }}:/data/onepiece
@@ -15,12 +13,42 @@ services:
       - PGID={{ media_gid_resolved }}
       - TZ={{ timezone }}
 
+  gluetun:
+    image: qmcgaw/gluetun:latest
+    container_name: gluetun
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    ports:
+      # qBittorrent WebUI port — accessed THROUGH gluetun
+      - "{{ qbittorrent_port }}:{{ qbittorrent_port }}"
+      # qBittorrent torrent port (BitTorrent traffic)
+      - "6881:6881"
+      - "6881:6881/udp"
+    volumes:
+      - gluetun-config:/gluetun
+    environment:
+      - VPN_SERVICE_PROVIDER=nordvpn
+      - VPN_TYPE=openvpn
+      - OPENVPN_USER={{ nordvpn_user }}        # service username from nordaccount
+      - OPENVPN_PASSWORD={{ nordvpn_password }} # service password
+      - SERVER_COUNTRIES=Switzerland           # or Netherlands
+      - TZ={{ timezone }}
+      # Health check ensures container restarts if VPN drops
+      - HEALTH_VPN_DURATION_INITIAL=120s
+      # Kill switch via firewall — built-in, on by default
+      - FIREWALL_OUTBOUND_SUBNETS=192.168.0.0/16,172.16.0.0/12,10.0.0.0/8,169.254.0.0/16
+    restart: unless-stopped
+
   qbittorrent:
     image: lscr.io/linuxserver/qbittorrent:latest
     container_name: qbittorrent
     restart: unless-stopped
-    networks:
-      - media-net
+    network_mode: "service:gluetun"   # ← key change: route through gluetun
+    depends_on:
+      gluetun:
+        condition: service_healthy
     volumes:
       - qbittorrent-config:/config
       - {{ hdd1_mount }}:/data/onepiece
@@ -35,8 +63,6 @@ services:
     image: lscr.io/linuxserver/sonarr:latest
     container_name: sonarr
     restart: unless-stopped
-    networks:
-      - media-net
     volumes:
       - sonarr-config:/config
       - {{ hdd1_mount }}:/data/onepiece
@@ -50,8 +76,6 @@ services:
     image: lscr.io/linuxserver/radarr:latest
     container_name: radarr
     restart: unless-stopped
-    networks:
-      - media-net
     volumes:
       - radarr-config:/config
       - {{ hdd2_mount }}:/data/library
@@ -64,8 +88,6 @@ services:
     image: lscr.io/linuxserver/prowlarr:latest
     container_name: prowlarr
     restart: unless-stopped
-    networks:
-      - media-net
     volumes:
       - prowlarr-config:/config
     environment:
@@ -79,6 +101,7 @@ volumes:
   sonarr-config:
   radarr-config:
   prowlarr-config:
+  gluetun-config:
 
 networks:
   media-net:
